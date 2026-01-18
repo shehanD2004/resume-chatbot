@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talk To MY Resume</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #00aaff 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        #chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg.bot {
+            background: white;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .msg.typing {
+            display: flex;
+            gap: 5px;
+            padding: 12px 18px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #user-input:focus {
+            border-color: #667eea;
+        }
+
+        #user-input:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 8px 20px;
+            font-size: 13px;
+            margin-left: 10px;
+        }
+
+        /* Scrollbar styling */
+        #chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #chat-box::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #chat-box::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        #chat-box::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .chat-header {
+                border-radius: 0;
+            }
+
+            .msg {
+                max-width: 85%;
+            }
+
+            button {
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>💼 Shehan's Resume Chatbot</h1>
+            <p>Ask me anything about Shehan's skills, experience, and interests!</p>
+        </div>
+
+        <div id="chat-box">
+            <div class="msg bot">
+                👋 Hi! I'm Shehan's AI assistant. Feel free to ask me about his tech stack, projects, or interests!
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="user-input" 
+                placeholder="Ask about skills, projects, or experience..."
+                autocomplete="off"
+            >
+            <button onclick="sendMessage()">Send</button>
+            <button class="clear-btn" onclick="clearConversation()">Clear</button>
+        </div>
+    </div>
+
+    <script>
+    // Resume text (enhanced with more details)
+    const RESUME_TEXT = `
+Name: Shehan
+Role: Information & Technology Undergraduate
+Location: [Add location if desired]
+
+TECHNICAL SKILLS:
+Programming Languages: Java, Python, JavaScript
+Web Development: HTML5, CSS3, React, Node.js, Express.js
+Backend Frameworks: Spring Boot
+Databases: [Add if any - e.g., MySQL, MongoDB]
+Tools & Platforms: Git, VS Code, [Add others]
+Currently Learning: Advanced Java, Spring Boot, Web Development, AI fundamentals
+
+EDUCATION:
+- Bachelor of Science in Information & Technology
+- [University Name] - [Expected Graduation Year]
+- Relevant Coursework: [Add relevant courses]
+
+PROJECTS:
+[Add 2-3 brief project descriptions]
+- Project 1: Brief description, technologies used
+- Project 2: Brief description, technologies used
+
+INTERESTS & HOBBIES:
+- Artificial Intelligence & Machine Learning
+- Digital Electronics
+- Building real-world applications
+- Problem-solving with technology
+- Open-source contributions
+
+PERSONAL STATEMENT:
+Shehan is a passionate Information & Technology undergraduate focused on building real-world applications. He enjoys working on projects that solve real problems and exploring how technology can create value. He has growing interests in AI and digital electronics, and is constantly expanding his technical skill set through hands-on learning and project development.
+`;
+
+    // Track conversation history
+    let conversationHistory = [];
+    
+    // Add session persistence
+    function saveConversation() {
+        sessionStorage.setItem('resumeChatHistory', JSON.stringify(conversationHistory));
+    }
+    
+    function loadConversation() {
+        const saved = sessionStorage.getItem('resumeChatHistory');
+        if (saved) {
+            try {
+                conversationHistory = JSON.parse(saved);
+                // Optionally reload messages
+            } catch (e) {
+                console.log("Could not load conversation history");
+            }
+        }
+    }
+    
+    // Call on page load
+    loadConversation();
+
+    async function sendMessage() {
+        const input = document.getElementById("user-input");
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Disable input while processing
+        input.disabled = true;
+        document.querySelector('button[onclick="sendMessage()"]').disabled = true;
+        
+        addMessage("user", message);
+        input.value = "";
+
+        // Show typing indicator
+        const typingId = addTypingIndicator();
+
+        try {
+            const response = await askResumeBot(message);
+            removeTypingIndicator(typingId);
+            addMessage("bot", response);
+        } catch (error) {
+            removeTypingIndicator(typingId);
+            console.error("Error:", error);
+            
+            // More specific error messages
+            let errorMessage = "Sorry, I encountered an error. Please try again.";
+            if (error.message.includes("429")) {
+                errorMessage = "Too many requests. Please wait a moment before trying again.";
+            } else if (error.message.includes("500")) {
+                errorMessage = "Server error. Please try again later.";
+            } else if (error.message.includes("Failed to fetch")) {
+                errorMessage = "Cannot connect to server. Please check your connection.";
+            }
+            
+            addMessage("bot", errorMessage);
+        } finally {
+            // Re-enable input
+            input.disabled = false;
+            document.querySelector('button[onclick="sendMessage()"]').disabled = false;
+            input.focus();
+        }
+    }
+
+    function addMessage(sender, text) {
+        const chatBox = document.getElementById("chat-box");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = sender === "user" ? "msg user" : "msg bot";
+        
+        // Add timestamp
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "message-time";
+        timeSpan.style.cssText = "display:block;font-size:0.7em;opacity:0.7;margin-top:5px;";
+        timeSpan.textContent = time;
+        
+        messageDiv.textContent = text;
+        messageDiv.appendChild(timeSpan);
+        
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+        const chatBox = document.getElementById("chat-box");
+        const typingDiv = document.createElement("div");
+        const id = "typing-" + Date.now();
+        typingDiv.id = id;
+        typingDiv.className = "msg bot typing";
+        typingDiv.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+        chatBox.appendChild(typingDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return id;
+    }
+
+    function removeTypingIndicator(id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.remove();
+        }
+    }
+
+async function askResumeBot(question) {
+    try {
+        conversationHistory.push({ role: "user", content: question });
+
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                message: question
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error(`Server error: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const botResponse = data.choices?.[0]?.message?.content;
+        
+        if (!botResponse) {
+            throw new Error("No response from server");
+        }
+
+        conversationHistory.push({ role: "assistant", content: botResponse });
+        saveConversation();
+        
+        return botResponse;
+    } catch (e) {
+        console.error("Error:", e);
+        throw e;
+    }
+}
+
+    function clearConversation() {
+        if (confirm("Are you sure you want to clear the conversation?")) {
+            conversationHistory = [];
+            sessionStorage.removeItem('resumeChatHistory');
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = '<div class="msg bot">👋 Hi! I\'m Shehan\'s AI assistant. Feel free to ask me about his tech stack, projects, or interests!</div>';
+            
+            // Example Questions
+            setTimeout(() => {
+                const examples = [
+                    "What programming languages does Shehan know?",
+                    "Tell me about Shehan's projects",
+                    "What is Shehan currently learning?",
+                    "What are Shehan's interests in technology?"
+                ];
+                
+                const exampleDiv = document.createElement("div");
+                exampleDiv.className = "msg bot";
+                exampleDiv.innerHTML = `
+                    <p><strong>Try asking:</strong></p>
+                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${examples.map(q => 
+                            `<button onclick="document.getElementById('user-input').value='${q}'; sendMessage();" 
+                              style="padding: 6px 12px; background: #f0f0f0; border: none; border-radius: 15px; cursor: pointer; font-size: 0.9em;">
+                              ${q}
+                            </button>`
+                        ).join('')}
+                    </div>
+                `;
+                chatBox.appendChild(exampleDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 300);
+        }
+    }
+
+    // Allow Enter key to send message
+    document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("user-input");
+        if (input) {
+            input.addEventListener("keypress", (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            input.focus();
+            
+            // Auto-resize textarea (if you change to textarea)
+            if (input.tagName === 'TEXTAREA') {
+                input.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            }
+        }
+        
+        // Add a welcome message with suggestions
+        setTimeout(() => {
+            const chatBox = document.getElementById("chat-box");
+            if (chatBox.children.length === 1) { // Only the initial message
+                const welcomeDiv = document.createElement("div");
+                welcomeDiv.className = "msg bot";
+                welcomeDiv.innerHTML = `
+                    <p>You can ask me about:</p>
+                    <ul style="margin-top: 5px; padding-left: 20px;">
+                        <li>Technical skills and programming languages</li>
+                        <li>Projects and experience</li>
+                        <li>Education and learning goals</li>
+                        <li>Interests and career aspirations</li>
+                    </ul>
+                `;
+                chatBox.appendChild(welcomeDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }, 1000);
+    });
+</script>
+</body>
+</html>
