@@ -35,7 +35,7 @@ A **web-based AI chatbot** powered by the OpenAI API that allows users to intera
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/resume-chatbot.git
+git clone https://github.com/shehanD2004/resume-chatbot.git
 cd resume-chatbot
 ````
 
